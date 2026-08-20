@@ -104,7 +104,7 @@ function buildActiveIndexData(raw) {
   var CATS = ['资源共享','人才培养','办学合作','产教科教融合','治理机制'];
   var categoryKeys = ['total','resource','talent','school','industry','governance'];
   var categoryLabels = ['总体','资源共享','人才培养','办学合作','产教科教融合','治理机制'];
-  var categoryColors = ['#095fd6','#1368e8','#16b8e8','#68a84f','#ed8615','#7468df'];
+  var categoryColors = ['#e03030','#1368e8','#16b8e8','#68a84f','#ed8615','#7468df'];
 
   var categories = {};
   for (var i = 0; i < categoryKeys.length; i++) {
