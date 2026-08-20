@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>活跃度指数 — 独立测试</title>
+  <style>
+    /* ── 测试壳样式 (不属于业务模块) ────────────────────────── */
+    :root {
+      --bg-page: #031426;
+      --panel-bg: rgba(3, 27, 50, 0.94);
+      --panel-bg-deep: #041a30;
+      --panel-border: rgba(0, 137, 255, 0.65);
+      --blue-main: #0867e8;
+      --blue-bright: #00a8ff;
+      --cyan-main: #12c8ff;
+      --orange-main: #ff8a1f;
+      --green-main: #6fa94f;
+      --purple-main: #7b6de6;
+      --text-primary: #f2f7ff;
+      --text-secondary: #b8c7d9;
+      --text-muted: #7e94ab;
+      --grid-line: rgba(80, 130, 170, 0.18);
+      --radius-panel: 8px;
+      --color-beijing: #ff8a1f;
+      --color-tianjin: #15b9e8;
+      --color-hebei: #6fa94f;
+      --color-jjj-total: #095fd6;
+      --color-resource: #1368e8;
+      --color-talent: #16b8e8;
+      --color-school: #68a84f;
+      --color-industry: #ed8615;
+      --color-governance: #7468df;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+    }
+
+    .module-preview {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--bg-page);
+    }
+
+    .module-preview__frame {
+      width: 620px;
+      height: 450px;
+    }
+
+    /* 尺寸切换控件 (测试用) */
+    .test-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .test-controls button {
+      padding: 6px 14px;
+      background: rgba(6, 42, 83, 0.8);
+      border: 1px solid rgba(35, 99, 143, 0.6);
+      border-radius: 4px;
+      color: #d8efff;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .test-controls button:hover {
+      background: #19618d;
+    }
+    .test-controls button.active {
+      background: rgba(9, 95, 214, 0.5);
+      border-color: rgba(0, 145, 255, 0.8);
+    }
+    .test-size-label {
+      color: #7e94ab;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+  </style>
+  <link rel="stylesheet" href="active-index.css">
+</head>
+<body>
+  <main class="module-preview">
+    <div class="test-controls">
+      <button data-w="540" data-h="400">540×400</button>
+      <button data-w="620" data-h="450" class="active">620×450</button>
+      <button data-w="720" data-h="520">720×520</button>
+    </div>
+    <div class="test-size-label" id="sizeLabel">当前尺寸: 620 × 450</div>
+    <div class="module-preview__frame" id="frame">
+      <div id="active-index-root" style="width:100%;height:100%;"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script src="active-index.data.js"></script>
+  <script src="active-index.js"></script>
+  <script>
+    // ── 初始化模块 ────────────────────────────────────────
+    initActiveIndex(
+      document.getElementById('active-index-root'),
+      ACTIVE_INDEX_DATA
+    );
+
+    // ── 测试尺寸切换 ─────────────────────────────────────
+    var frame = document.getElementById('frame');
+    var label = document.getElementById('sizeLabel');
+    var btns  = document.querySelectorAll('.test-controls button');
+
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var w = btn.dataset.w;
+        var h = btn.dataset.h;
+        frame.style.width  = w + 'px';
+        frame.style.height = h + 'px';
+        label.textContent  = '当前尺寸: ' + w + ' × ' + h;
+        btns.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        // 触发 resize
+        setTimeout(function () { resizeActiveIndex(); }, 50);
+      });
+    });
+  </script>
+</body>
+</html>

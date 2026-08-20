@@ -1,0 +1,261 @@
+/* ============================================================
+   活跃度指数 — 业务模块 CSS
+   Namespace: .active-index__
+   本文件禁止污染 body / html / 通用标签
+   ============================================================ */
+
+/* ── 模块根容器 ──────────────────────────────────────────────── */
+.active-index {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(135deg,
+      rgba(3, 27, 50, 0.97) 0%,
+      rgba(4, 22, 42, 0.94) 100%);
+  border: 1px solid rgba(0, 137, 255, 0.65);
+  border-radius: var(--radius-panel, 8px);
+  box-shadow:
+    inset 0 0 30px rgba(0, 80, 200, 0.06),
+    0 0 18px rgba(0, 100, 255, 0.08);
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+  color: var(--text-primary, #f2f7ff);
+  box-sizing: border-box;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.active-index__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(0, 137, 255, 0.18);
+}
+
+.active-index__title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #f2f7ff);
+  letter-spacing: 1px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.active-index__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 播放按钮 ────────────────────────────────────────────────── */
+.active-index__play-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  background: rgba(6, 42, 83, 0.8);
+  border: 1px solid rgba(35, 99, 143, 0.6);
+  border-radius: 4px;
+  color: #d8efff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.active-index__play-btn:hover {
+  background: #19618d;
+  border-color: rgba(0, 168, 255, 0.5);
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
+}
+
+.active-index__play-btn:active {
+  background: #0d4a73;
+}
+
+/* ── 当前月份标签 (Header 内) ────────────────────────────────── */
+.active-index__current-month-label {
+  font-size: 13px;
+  color: var(--text-muted, #7e94ab);
+  white-space: nowrap;
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Body ────────────────────────────────────────────────────── */
+.active-index__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 12px 8px;
+}
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+.active-index__tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+
+.active-index__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
+  background: rgba(6, 30, 60, 0.7);
+  border: 1px solid rgba(35, 99, 143, 0.45);
+  border-radius: 4px;
+  color: var(--text-secondary, #b8c7d9);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.active-index__tab:hover {
+  border-color: rgba(0, 168, 255, 0.6);
+  color: #e0f0ff;
+  background: rgba(8, 50, 100, 0.6);
+}
+
+.active-index__tab--active {
+  background: rgba(9, 95, 214, 0.35);
+  border-color: rgba(0, 145, 255, 0.75);
+  color: #f2f7ff;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(0, 120, 255, 0.2);
+}
+
+/* ── 图表 + 指标叠加区域 ─────────────────────────────────────── */
+.active-index__chart-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.active-index__chart {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ── 当前指标卡片 (图表右上角) ───────────────────────────────── */
+.active-index__metric {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(3, 18, 36, 0.88);
+  border: 1px solid rgba(0, 137, 255, 0.35);
+  border-radius: 5px;
+  padding: 5px 10px 4px;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(0, 100, 255, 0.08);
+}
+
+.active-index__metric-month {
+  font-size: 11px;
+  color: var(--text-muted, #7e94ab);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.active-index__metric-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #f2f7ff;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 底部状态栏 ──────────────────────────────────────────────── */
+.active-index__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 16px;
+  border-top: 1px solid rgba(0, 137, 255, 0.12);
+  z-index: 1;
+}
+
+.active-index__status {
+  font-size: 12px;
+  color: var(--text-muted, #7e94ab);
+  white-space: nowrap;
+}
+
+.active-index__status-category {
+  color: var(--text-secondary, #b8c7d9);
+}
+
+/* ── 进度条 ──────────────────────────────────────────────────── */
+.active-index__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0, 80, 180, 0.15);
+  z-index: 2;
+}
+
+.active-index__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0867e8, #00a8ff);
+  transition: width 0.3s ease;
+  border-radius: 0 1px 1px 0;
+  box-shadow: 0 0 6px rgba(0, 168, 255, 0.35);
+}
+
+/* ── 小尺寸适配 ──────────────────────────────────────────────── */
+@media (max-width: 580px), (max-height: 420px) {
+  .active-index__header {
+    height: 42px;
+    padding: 0 10px;
+  }
+  .active-index__title {
+    font-size: 18px;
+  }
+  .active-index__body {
+    padding: 6px 8px 6px;
+  }
+  .active-index__tabs {
+    gap: 3px;
+    margin-bottom: 4px;
+  }
+  .active-index__tab {
+    height: 26px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+  .active-index__metric-value {
+    font-size: 20px;
+  }
+}
