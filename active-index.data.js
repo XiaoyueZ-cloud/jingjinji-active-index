@@ -1,130 +1,128 @@
 /**
  * 活跃度指数 — 数据层
- * 原始数据来源: lyfgithub网页文件/活跃度动态变化/data/monthly_summary.json
- * 2023-01 ~ 2024-12 为真实 Excel 数据
- * 2025-01 ~ 2026-07 为基于趋势的模拟延伸
+ * 总体指数: 用户提供的 43 个月指数数据
+ * 五类分量: 基于原始 V1 Excel 事件评分 (2023-01 ~ 2024-12)
+ *           2025-01 ~ 2026-07 按同期模式 + 总量比例推算
  *
  * TODO: 后续替换为真实数据接口 (fetch / API)
  */
 
-// ── 原始 V1 真实数据 (24 个月) ────────────────────────────────
-var RAW_MONTHLY = [
-  {"month":"2023-01","categories":{"资源共享":12,"人才培养":8,"办学合作":15,"产教科教融合":4,"治理机制":6},"total":45},
-  {"month":"2023-02","categories":{"资源共享":5,"人才培养":9,"办学合作":7,"产教科教融合":3,"治理机制":4},"total":28},
-  {"month":"2023-03","categories":{"资源共享":14,"人才培养":12,"办学合作":11,"产教科教融合":7,"治理机制":5},"total":49},
-  {"month":"2023-04","categories":{"资源共享":8,"人才培养":6,"办学合作":17,"产教科教融合":5,"治理机制":9},"total":45},
-  {"month":"2023-05","categories":{"资源共享":18,"人才培养":14,"办学合作":12,"产教科教融合":9,"治理机制":6},"total":59},
-  {"month":"2023-06","categories":{"资源共享":23,"人才培养":17,"办学合作":20,"产教科教融合":11,"治理机制":8},"total":79},
-  {"month":"2023-07","categories":{"资源共享":9,"人才培养":7,"办学合作":8,"产教科教融合":2,"治理机制":4},"total":30},
-  {"month":"2023-08","categories":{"资源共享":12,"人才培养":16,"办学合作":14,"产教科教融合":6,"治理机制":7},"total":55},
-  {"month":"2023-09","categories":{"资源共享":25,"人才培养":19,"办学合作":21,"产教科教融合":13,"治理机制":12},"total":90},
-  {"month":"2023-10","categories":{"资源共享":15,"人才培养":11,"办学合作":19,"产教科教融合":8,"治理机制":6},"total":59},
-  {"month":"2023-11","categories":{"资源共享":10,"人才培养":13,"办学合作":9,"产教科教融合":5,"治理机制":10},"total":47},
-  {"month":"2023-12","categories":{"资源共享":19,"人才培养":18,"办学合作":23,"产教科教融合":15,"治理机制":10},"total":85},
-  {"month":"2024-01","categories":{"资源共享":13,"人才培养":10,"办学合作":12,"产教科教融合":6,"治理机制":7},"total":48},
-  {"month":"2024-02","categories":{"资源共享":12,"人才培养":8,"办学合作":15,"产教科教融合":4,"治理机制":6},"total":45},
-  {"month":"2024-03","categories":{"资源共享":22,"人才培养":20,"办学合作":18,"产教科教融合":14,"治理机制":11},"total":85},
-  {"month":"2024-04","categories":{"资源共享":17,"人才培养":15,"办学合作":27,"产教科教融合":12,"治理机制":13},"total":84},
-  {"month":"2024-05","categories":{"资源共享":30,"人才培养":22,"办学合作":24,"产教科教融合":18,"治理机制":14},"total":108},
-  {"month":"2024-06","categories":{"资源共享":25,"人才培养":28,"办学合作":29,"产教科教融合":21,"治理机制":17},"total":120},
-  {"month":"2024-07","categories":{"资源共享":11,"人才培养":9,"办学合作":13,"产教科教融合":4,"治理机制":5},"total":42},
-  {"month":"2024-08","categories":{"资源共享":20,"人才培养":24,"办学合作":19,"产教科教融合":16,"治理机制":12},"total":91},
-  {"month":"2024-09","categories":{"资源共享":34,"人才培养":30,"办学合作":32,"产教科教融合":26,"治理机制":21},"total":143},
-  {"month":"2024-10","categories":{"资源共享":27,"人才培养":23,"办学合作":35,"产教科教融合":19,"治理机制":16},"total":120},
-  {"month":"2024-11","categories":{"资源共享":18,"人才培养":17,"办学合作":20,"产教科教融合":12,"治理机制":15},"total":82},
-  {"month":"2024-12","categories":{"资源共享":31,"人才培养":29,"办学合作":37,"产教科教融合":24,"治理机制":20},"total":141}
+// ── 用户提供的总体指数 (43 个月) ─────────────────────────────
+var TOTAL_INDEX = [
+  28.7, 1.9, 13.4, 44.0, 216.3, 151.2, 76.6, 57.4, 124.4, 164.6, 250.7, 72.7,
+  126.3, 38.3, 124.4, 262.2, 187.6, 120.6, 65.1, 135.9, 99.5, 134.0, 141.6, 189.5,
+  162.7, 32.5, 179.9, 97.6, 122.5, 220.1, 30.6, 139.7, 162.7, 80.4, 197.1, 254.5,
+  61.2, 47.8, 103.3, 210.5, 273.7, 120.6, 70.8
 ];
 
-// ── 根据 2023/2024 两年同期均值 + 增长趋势生成 2025-01 ~ 2026-07 ──
-function _extendMonthlyData(raw) {
-  var CATS = ['资源共享','人才培养','办学合作','产教科教融合','治理机制'];
-  var out = raw.map(function(r){ return { month:r.month, categories:{}, total:0 }; });
-  for (var i = 0; i < out.length; i++) {
-    var src = raw[i].categories;
-    var t = 0;
-    for (var c = 0; c < CATS.length; c++) { out[i].categories[CATS[c]] = src[CATS[c]]; t += src[CATS[c]]; }
-    out[i].total = t;
-  }
+// ── 原始 V1 五类分量 (24 个月, 来自 Excel 事件评分) ──────────
+var RAW_CATEGORIES = [
+  {"month":"2023-01","c":{"资源共享":12,"人才培养":8,"办学合作":15,"产教科教融合":4,"治理机制":6}},
+  {"month":"2023-02","c":{"资源共享":5,"人才培养":9,"办学合作":7,"产教科教融合":3,"治理机制":4}},
+  {"month":"2023-03","c":{"资源共享":14,"人才培养":12,"办学合作":11,"产教科教融合":7,"治理机制":5}},
+  {"month":"2023-04","c":{"资源共享":8,"人才培养":6,"办学合作":17,"产教科教融合":5,"治理机制":9}},
+  {"month":"2023-05","c":{"资源共享":18,"人才培养":14,"办学合作":12,"产教科教融合":9,"治理机制":6}},
+  {"month":"2023-06","c":{"资源共享":23,"人才培养":17,"办学合作":20,"产教科教融合":11,"治理机制":8}},
+  {"month":"2023-07","c":{"资源共享":9,"人才培养":7,"办学合作":8,"产教科教融合":2,"治理机制":4}},
+  {"month":"2023-08","c":{"资源共享":12,"人才培养":16,"办学合作":14,"产教科教融合":6,"治理机制":7}},
+  {"month":"2023-09","c":{"资源共享":25,"人才培养":19,"办学合作":21,"产教科教融合":13,"治理机制":12}},
+  {"month":"2023-10","c":{"资源共享":15,"人才培养":11,"办学合作":19,"产教科教融合":8,"治理机制":6}},
+  {"month":"2023-11","c":{"资源共享":10,"人才培养":13,"办学合作":9,"产教科教融合":5,"治理机制":10}},
+  {"month":"2023-12","c":{"资源共享":19,"人才培养":18,"办学合作":23,"产教科教融合":15,"治理机制":10}},
+  {"month":"2024-01","c":{"资源共享":13,"人才培养":10,"办学合作":12,"产教科教融合":6,"治理机制":7}},
+  {"month":"2024-02","c":{"资源共享":12,"人才培养":8,"办学合作":15,"产教科教融合":4,"治理机制":6}},
+  {"month":"2024-03","c":{"资源共享":22,"人才培养":20,"办学合作":18,"产教科教融合":14,"治理机制":11}},
+  {"month":"2024-04","c":{"资源共享":17,"人才培养":15,"办学合作":27,"产教科教融合":12,"治理机制":13}},
+  {"month":"2024-05","c":{"资源共享":30,"人才培养":22,"办学合作":24,"产教科教融合":18,"治理机制":14}},
+  {"month":"2024-06","c":{"资源共享":25,"人才培养":28,"办学合作":29,"产教科教融合":21,"治理机制":17}},
+  {"month":"2024-07","c":{"资源共享":11,"人才培养":9,"办学合作":13,"产教科教融合":4,"治理机制":5}},
+  {"month":"2024-08","c":{"资源共享":20,"人才培养":24,"办学合作":19,"产教科教融合":16,"治理机制":12}},
+  {"month":"2024-09","c":{"资源共享":34,"人才培养":30,"办学合作":32,"产教科教融合":26,"治理机制":21}},
+  {"month":"2024-10","c":{"资源共享":27,"人才培养":23,"办学合作":35,"产教科教融合":19,"治理机制":16}},
+  {"month":"2024-11","c":{"资源共享":18,"人才培养":17,"办学合作":20,"产教科教融合":12,"治理机制":15}},
+  {"month":"2024-12","c":{"资源共享":31,"人才培养":29,"办学合作":37,"产教科教融合":24,"治理机制":20}}
+];
 
-  // 计算 2023→2024 增长率
-  var y23 = raw.filter(function(r){ return r.month < '2024'; });
-  var y24 = raw.filter(function(r){ return r.month >= '2024'; });
-  var avg23 = {}, avg24 = {}, growth = {};
-  for (var c = 0; c < CATS.length; c++) {
-    var s23 = 0, s24 = 0;
-    for (var j = 0; j < y23.length; j++) s23 += y23[j].categories[CATS[c]];
-    for (var j = 0; j < y24.length; j++) s24 += y24[j].categories[CATS[c]];
-    avg23[CATS[c]] = s23 / y23.length;
-    avg24[CATS[c]] = s24 / y24.length;
-    // 增长率 (使用 2*atan/PI 抑制, 上限 ~15%/年)
-  growth[CATS[c]] = avg23[CATS[c]] > 0 ? (avg24[CATS[c]] - avg23[CATS[c]]) / avg23[CATS[c]] : 0.25;
-  growth[CATS[c]] = 2 * Math.atan(growth[CATS[c]] * 0.3) / Math.PI;
-  }
+var CAT_NAMES = ['资源共享','人才培养','办学合作','产教科教融合','治理机制'];
+var MONTHS_ALL = [
+  "2023-01","2023-02","2023-03","2023-04","2023-05","2023-06",
+  "2023-07","2023-08","2023-09","2023-10","2023-11","2023-12",
+  "2024-01","2024-02","2024-03","2024-04","2024-05","2024-06",
+  "2024-07","2024-08","2024-09","2024-10","2024-11","2024-12",
+  "2025-01","2025-02","2025-03","2025-04","2025-05","2025-06",
+  "2025-07","2025-08","2025-09","2025-10","2025-11","2025-12",
+  "2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07"
+];
 
-  // 两年同期月度模式
-  var pattern = {};
-  for (var c = 0; c < CATS.length; c++) {
-    pattern[CATS[c]] = [];
+function buildActiveIndexData() {
+  // 计算原始 24 个月的五类占比
+  var ratioSum = {};
+  for (var c = 0; c < CAT_NAMES.length; c++) ratioSum[CAT_NAMES[c]] = 0;
+  for (var i = 0; i < 24; i++) {
+    var total = 0;
+    for (var c = 0; c < CAT_NAMES.length; c++) total += RAW_CATEGORIES[i].c[CAT_NAMES[c]];
+    for (var c = 0; c < CAT_NAMES.length; c++) ratioSum[CAT_NAMES[c]] += RAW_CATEGORIES[i].c[CAT_NAMES[c]] / total;
+  }
+  var avgRatio = {};
+  for (var c = 0; c < CAT_NAMES.length; c++) avgRatio[CAT_NAMES[c]] = ratioSum[CAT_NAMES[c]] / 24;
+
+  // 两年同月均值模式 (用于季节波动)
+  var monthPattern = {};
+  for (var c = 0; c < CAT_NAMES.length; c++) {
+    monthPattern[CAT_NAMES[c]] = [];
     for (var m = 0; m < 12; m++) {
-      var v = (raw[m].categories[CATS[c]] + raw[m + 12].categories[CATS[c]]) / 2;
-      pattern[CATS[c]].push(v);
-    }
-  }
-
-  var seed = 42;
-  function seededRand() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
-
-  // 生成 2025-01 ~ 2026-07
-  var years = [2025, 2026];
-  for (var yi = 0; yi < years.length; yi++) {
-    var year = years[yi];
-    var monthCount = year === 2026 ? 7 : 12;
-    var yearOffset = year - 2023;
-    for (var m = 1; m <= monthCount; m++) {
-      var monthStr = year + '-' + (m < 10 ? '0' + m : '' + m);
-      var cats = {};
-      var total = 0;
-      for (var c = 0; c < CATS.length; c++) {
-        var base = pattern[CATS[c]][m - 1] * Math.pow(1 + growth[CATS[c]], yearOffset);
-        var noise = base * (seededRand() * 0.26 - 0.13);
-        var val = Math.max(1, Math.round(base + noise));
-        cats[CATS[c]] = val;
-        total += val;
+      var raw23 = RAW_CATEGORIES[m].c[CAT_NAMES[c]];
+      var raw24 = RAW_CATEGORIES[m + 12].c[CAT_NAMES[c]];
+      var total23 = 0, total24 = 0;
+      for (var k = 0; k < CAT_NAMES.length; k++) {
+        total23 += RAW_CATEGORIES[m].c[CAT_NAMES[k]];
+        total24 += RAW_CATEGORIES[m + 12].c[CAT_NAMES[k]];
       }
-      out.push({ month: monthStr, categories: cats, total: total });
+      var ratio23 = total23 > 0 ? raw23 / total23 : avgRatio[CAT_NAMES[c]];
+      var ratio24 = total24 > 0 ? raw24 / total24 : avgRatio[CAT_NAMES[c]];
+      monthPattern[CAT_NAMES[c]].push((ratio23 + ratio24) / 2);
     }
   }
-  return out;
-}
 
-// ── 构建最终六类数据结构 ──────────────────────────────────────
-function buildActiveIndexData(raw) {
-  var extended = _extendMonthlyData(raw);
-  var months = extended.map(function(r){ return r.month; });
-  var CATS = ['资源共享','人才培养','办学合作','产教科教融合','治理机制'];
-  var categoryKeys = ['total','resource','talent','school','industry','governance'];
-  var categoryLabels = ['总体','资源共享','人才培养','办学合作','产教科教融合','治理机制'];
-  var categoryColors = ['#e03030','#1368e8','#16b8e8','#68a84f','#ed8615','#7468df'];
+  // 构建六类数据
+  var categories = {
+    total:      { label: '总体',         color: '#e03030', values: [] },
+    resource:   { label: '资源共享',     color: '#1368e8', values: [] },
+    talent:     { label: '人才培养',     color: '#16b8e8', values: [] },
+    school:     { label: '办学合作',     color: '#68a84f', values: [] },
+    industry:   { label: '产教科教融合', color: '#ed8615', values: [] },
+    governance: { label: '治理机制',     color: '#7468df', values: [] }
+  };
 
-  var categories = {};
-  for (var i = 0; i < categoryKeys.length; i++) {
-    categories[categoryKeys[i]] = {
-      label: categoryLabels[i],
-      color: categoryColors[i],
-      values: []
-    };
-  }
+  for (var i = 0; i < 43; i++) {
+    var total = TOTAL_INDEX[i];
+    categories.total.values.push(total);
 
-  for (var j = 0; j < extended.length; j++) {
-    var row = extended[j];
-    categories.total.values.push(row.total);
-    for (var c = 0; c < CATS.length; c++) {
-      categories[categoryKeys[c + 1]].values.push(row.categories[CATS[c]]);
+    var monthIdx = i % 12;
+
+    if (i < 24) {
+      // 原始 24 个月: 用实际比例 × 指数
+      var rawTotal = 0;
+      for (var c = 0; c < CAT_NAMES.length; c++) rawTotal += RAW_CATEGORIES[i].c[CAT_NAMES[c]];
+      var keys = ['resource','talent','school','industry','governance'];
+      for (var c = 0; c < CAT_NAMES.length; c++) {
+        var ratio = rawTotal > 0 ? RAW_CATEGORIES[i].c[CAT_NAMES[c]] / rawTotal : avgRatio[CAT_NAMES[c]];
+        categories[keys[c]].values.push(Math.round(total * ratio * 10) / 10);
+      }
+    } else {
+      // 2025-01 ~ 2026-07: 用季节比例 × 指数
+      var keys = ['resource','talent','school','industry','governance'];
+      var ratioTotal = 0;
+      for (var c = 0; c < CAT_NAMES.length; c++) ratioTotal += monthPattern[CAT_NAMES[c]][monthIdx];
+      for (var c = 0; c < CAT_NAMES.length; c++) {
+        var r = monthPattern[CAT_NAMES[c]][monthIdx] / ratioTotal;
+        categories[keys[c]].values.push(Math.round(total * r * 10) / 10);
+      }
     }
   }
 
   return {
-    months: months,
+    months: MONTHS_ALL.slice(),
     categories: categories,
     events: null
   };
@@ -139,6 +137,6 @@ var RAW_EVENTS = [
   {"eventId":"E00022","month":"2024-06","eventName":"三地高校发布跨区域联合招生培养项目","subject":"多所高校","region":"京津冀","source":"虚拟新闻来源","scores":[{"category":"人才培养","subcategory":"联合培养","score":18,"reason":"实施跨校培养"},{"category":"办学合作","subcategory":"专业共建","score":15,"reason":"共建特色专业"}]}
 ];
 
-// ── 初始化 (在 HTML 中直接调用) ───────────────────────────────
-var ACTIVE_INDEX_DATA = buildActiveIndexData(RAW_MONTHLY);
+// ── 初始化 ───────────────────────────────────────────────────
+var ACTIVE_INDEX_DATA = buildActiveIndexData();
 ACTIVE_INDEX_DATA.events = RAW_EVENTS;
